@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OptimusMesh</title>
-  <meta name="description" content="OptimusMesh project page." />
+  <title>OptimusMesh: Compact Autoregressive Mesh Generation from Point Clouds via Sparse Latent Pivots</title>
+  <meta name="description" content="OptimusMesh generates compact triangle meshes from point clouds through sparse latent pivot conditioning." />
   <link rel="stylesheet" href="styles.css" />
+  <script defer src="assets/models/meshes.js"></script>
+  <script defer src="mesh-viewer.js"></script>
 </head>
 <body>
   <main>
     <section class="paper-hero">
-      <h1>OptimusMesh</h1>
-      <h2>Compact Autoregressive Mesh Generation from Point Clouds</h2>
-      <p class="authors">Mazhar Iqbal<sup>1</sup> &nbsp; Naoya Chiba<sup>1</sup> &nbsp; Xuanmeng Sha<sup>1</sup> &nbsp; Tomohiro Mashita<sup>2</sup> &nbsp; Yuki Uranishi<sup>1</sup></p>
+      <h1 class="paper-title">OptimusMesh: Compact Autoregressive Mesh Generation from Point Clouds via Sparse Latent Pivots</h1>
+      <p class="authors"><a href="https://mazharcyber.github.io/" target="_blank" rel="noopener noreferrer">Mazhar Iqbal</a><sup>1</sup> &nbsp; <a href="https://scholar.google.co.jp/citations?user=ya_qj20AAAAJ&amp;hl=ja" target="_blank" rel="noopener noreferrer">Xuanmeng Sha</a><sup>1</sup> &nbsp; <a href="https://sites.google.com/view/n-chiba-?pli=1&amp;authuser=0" target="_blank" rel="noopener noreferrer">Naoya Chiba</a><sup>1</sup> &nbsp; <a href="https://www.uranishi.me/" target="_blank" rel="noopener noreferrer">Yuki Uranishi</a><sup>1</sup> &nbsp; <a href="https://sites.google.com/view/tomohiromashitaphd" target="_blank" rel="noopener noreferrer">Tomohiro Mashita</a><sup>2</sup></p>
       <p class="affiliations"><sup>1</sup> The University of Osaka &nbsp;&nbsp; <sup>2</sup> Osaka Electro-Communication University</p>
       <div class="link-row">
         <a href="#" class="pill">Paper</a>
@@ -27,106 +28,133 @@
     <section class="section abstract">
       <h3>Abstract</h3>
       <p>
-        Generating compact, render-ready, and geometrically faithful 3D meshes directly from point clouds remains a fundamental challenge. Point clouds are unordered and sparse, whereas meshes exhibit irregular structure and inconsistent topology. As a result, most existing approaches avoid direct mesh generation and instead rely on implicit representations followed by surface extraction or reconstruction. Although effective, these pipelines typically produce dense and over-smoothed meshes that ignore geometric features, requiring computationally expensive post-processing and simplification. We present <strong>OptimusMesh</strong>, a framework for direct compact triangle mesh generation from point clouds using sparse latent pivot conditioning. Our key idea is to extract <em>K</em>=16 sparse latent pivots using a pretrained point-cloud encoder, where each pivot represents a key structural point with learned features that capture the overall geometry of the input shape. Conditioned on these pivots, a Transformer-based two-stage autoregressive decoder sequentially generates mesh vertices and then triangular faces, enabling suppression of output complexity. Sparse latent pivots provide strong global guidance for autoregressive decoding, enabling compact mesh generation without relying on surface extraction, e.g., Marching Cubes, or costly simplification. On a subset of ShapeNet samples, <strong>OptimusMesh</strong> achieves 55.3% lower CD-L1 than PSR and 58.5% lower than SAP, while producing 97.7% and 99.2% fewer faces, respectively. Compared with recent autoregressive mesh generation methods, our approach further achieves 35.7%--55.4% lower CD-L1 while maintaining highly compact mesh topology and stronger overall geometric fidelity.
+        Generating compact and geometrically faithful 3D meshes directly from point clouds remains a fundamental challenge. Point clouds are unordered and sparse, whereas meshes exhibit irregular structure and varying topology. As a result, many existing approaches rely on implicit representations followed by surface extraction or reconstruction. Although effective, these pipelines can produce dense or over-smoothed meshes, often requiring computationally expensive post-processing and simplification. We present <strong>OptimusMesh</strong>, a framework for direct compact triangle mesh generation from point clouds using sparse latent pivot conditioning. Our key idea is to compress 2,048 oriented input points into only 16 sparse latent pivots, reducing the geometric conditioning set by 128&times;. These pivots provide a compact structural representation shared across a two-stage autoregressive framework that first generates mesh vertices and then predicts triangular faces conditioned on the generated vertices and the same pivots. Compared with the evaluated recent point-cloud-conditioned autoregressive methods, which use 257 decoder-conditioning tokens, OptimusMesh uses only 16, yielding a 16.1&times; shorter conditioning sequence. Experiments show that OptimusMesh produces the most compact outputs among the compared recent autoregressive methods, using 25.7%&ndash;94.1% fewer faces while maintaining competitive geometric fidelity and distributional quality.
       </p>
     </section>
 
-    <section class="section">
+    <section class="section comparison-section">
       <h3>Comparison with Baselines</h3>
-      <p class="section-note">Same object IDs are shown across methods. OptimusMesh produces compact triangle meshes while classical reconstruction baselines can be over-triangulated.</p>
+      <p class="section-note">Same object IDs are shown across methods.</p>
       <div class="compare-scroll">
         <table class="gif-table">
           <thead>
-            <tr><th>Object</th><th>Input PC</th><th>GT</th><th>Ours</th><th>PSR</th><th>SAP</th><th>MeshAnything</th><th>MeshAnythingV2</th><th>FastMesh</th><th>NKSR</th><th>MeshRipple</th></tr>
+            <tr><th>Object</th><th>Input PC</th><th>OptimusMesh</th><th>FastMesh</th><th>MeshAnything</th><th>NKSR</th><th>MeshAnythingV2</th><th>MeshRipple</th><th>PSR</th><th>SAP</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>Chair</td>
-              <td><img src="assets/provided/individual_method_gifs_pointcloud_inputs/chair_b68180bfde45f5a7e450a02d8032dbb0_frames.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_GT.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_Ours.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_PSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_SAP.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_MeshAnything.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_MeshAnythingV2.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_FastMesh.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_NKSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/chair_b68180bfde45/chair_b68180bfde45_MeshRipple.gif"/></td>
+              <td>Table</td>
+              <td><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_input_pointcloud.gif" alt="Table input point cloud" /></td>
+              <td data-faces="84" class="ours-result"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_optimusmesh.gif" alt="Table generated by OptimusMesh" /></td>
+              <td data-faces="2,155"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_fastmesh_v1k.gif" alt="Table generated by FastMesh" /></td>
+              <td data-faces="769"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_meshanything.gif" alt="Table generated by MeshAnything" /></td>
+              <td data-faces="16,924"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_nksr.gif" alt="Table reconstructed by NKSR" /></td>
+              <td data-faces="545"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_meshanything_v2.gif" alt="Table generated by MeshAnythingV2" /></td>
+              <td data-faces="9,669"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_meshripple_10k.gif" alt="Table generated by MeshRipple" /></td>
+              <td data-faces="10,196"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_psr.gif" alt="Table reconstructed by PSR" /></td>
+              <td data-faces="43,716"><img src="finalfigures/gifs_final/ce1e09dec6387f715fcce4c360a80a36/ce1e09dec6387f715fcce4c360a80a36_sap.gif" alt="Table reconstructed by SAP" /></td>
             </tr>
             <tr>
-              <td>Table</td>
-              <td><img src="assets/provided/individual_method_gifs_pointcloud_inputs/table_b91d82b0ef56c395a8005eb66c8d94ac_frames.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_GT.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_Ours.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_PSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_SAP.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_MeshAnything.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_MeshAnythingV2.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_FastMesh.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_NKSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/table_b91d82b0ef56/table_b91d82b0ef56_MeshRipple.gif"/></td>
+              <td>Chair</td>
+              <td><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_input_pointcloud.gif" alt="Chair input point cloud" /></td>
+              <td data-faces="128" class="ours-result"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_optimusmesh.gif" alt="Chair generated by OptimusMesh" /></td>
+              <td data-faces="3,223"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_fastmesh_v1k.gif" alt="Chair generated by FastMesh" /></td>
+              <td data-faces="426"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_meshanything.gif" alt="Chair generated by MeshAnything" /></td>
+              <td data-faces="20,886"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_nksr.gif" alt="Chair reconstructed by NKSR" /></td>
+              <td data-faces="680"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_meshanything_v2.gif" alt="Chair generated by MeshAnythingV2" /></td>
+              <td data-faces="4,233"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_meshripple_10k.gif" alt="Chair generated by MeshRipple" /></td>
+              <td data-faces="12,312"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_psr.gif" alt="Chair reconstructed by PSR" /></td>
+              <td data-faces="32,452"><img src="finalfigures/gifs_final/d9bbd1a1eaf6d2259d3ea1c6b57a0095/d9bbd1a1eaf6d2259d3ea1c6b57a0095_sap.gif" alt="Chair reconstructed by SAP" /></td>
             </tr>
             <tr>
               <td>Display</td>
-              <td><img src="assets/provided/individual_method_gifs_pointcloud_inputs/display_c0ed587c1ca5709b1c9fef7c3e095105_frames.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_GT.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_Ours.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_PSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_SAP.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_MeshAnything.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_MeshAnythingV2.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_FastMesh.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_NKSR.gif"/></td>
-              <td><img src="assets/provided/individual_method_meshes/individual_method_meshes/display_c0ed587c1ca5/display_c0ed587c1ca5_MeshRipple.gif"/></td>
+              <td><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_input_pointcloud.gif" alt="Display input point cloud" /></td>
+              <td data-faces="58" class="ours-result"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_optimusmesh.gif" alt="Display generated by OptimusMesh" /></td>
+              <td data-faces="425"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_fastmesh_v1k.gif" alt="Display generated by FastMesh" /></td>
+              <td data-faces="64"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_meshanything.gif" alt="Display generated by MeshAnything" /></td>
+              <td data-faces="8,888"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_nksr.gif" alt="Display reconstructed by NKSR" /></td>
+              <td data-faces="64"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_meshanything_v2.gif" alt="Display generated by MeshAnythingV2" /></td>
+              <td data-faces="9,998"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_meshripple_10k.gif" alt="Display generated by MeshRipple" /></td>
+              <td data-faces="9,991"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_psr.gif" alt="Display reconstructed by PSR" /></td>
+              <td data-faces="29,000"><img src="finalfigures/gifs_final/dfbce5e6cca00c1448627a76b6268107/dfbce5e6cca00c1448627a76b6268107_sap.gif" alt="Display reconstructed by SAP" /></td>
+            </tr>
+            <tr>
+              <td>Table</td>
+              <td><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_input_pointcloud.gif" alt="Table input point cloud" /></td>
+              <td data-faces="86" class="ours-result"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_optimusmesh.gif" alt="Table generated by OptimusMesh" /></td>
+              <td data-faces="3,270"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_fastmesh_v1k.gif" alt="Table generated by FastMesh" /></td>
+              <td data-faces="590"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_meshanything.gif" alt="Table generated by MeshAnything" /></td>
+              <td data-faces="25,466"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_nksr.gif" alt="Table reconstructed by NKSR" /></td>
+              <td data-faces="542"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_meshanything_v2.gif" alt="Table generated by MeshAnythingV2" /></td>
+              <td data-faces="3,248"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_meshripple_10k.gif" alt="Table generated by MeshRipple" /></td>
+              <td data-faces="13,520"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_psr.gif" alt="Table reconstructed by PSR" /></td>
+              <td data-faces="41,744"><img src="finalfigures/gifs_final/f52b167d756420c83e5f17778b45d37e/f52b167d756420c83e5f17778b45d37e_sap.gif" alt="Table reconstructed by SAP" /></td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="section">
-      <h3>3D Asset Generation for Scenes</h3>
-      <p class="section-note">Generated meshes can be placed together as lightweight scene assets.</p>
-      <video class="wide-video" src="assets/provided/optimusmesh_scene_progress_25s.mp4" controls muted loop playsinline></video>
+    <section class="section application-section">
+      <p class="section-kicker">Application</p>
+      <h3>From Point Clouds to a Populated 3D Scene</h3>
+      <p class="application-copy">We use OptimusMesh to populate an indoor scene with compact assets generated directly from point-cloud observations. The video follows the progression from observed points to explicit triangle meshes and then places the generated objects together, illustrating how compact outputs can serve as lightweight, render-ready scene assets.</p>
+      <video class="wide-video" src="finalfigures/optimusmesh_scene_progress_pointcloud_30s.mp4" controls muted loop playsinline></video>
+      <p class="caption">Each scene object is reconstructed from its point-cloud observation using the same sparse-pivot-conditioned generation pipeline.</p>
     </section>
 
-    <section class="section">
+    <section class="section" id="generated-meshes">
       <h3>Generated Mesh Samples</h3>
-      <p class="section-note">Additional generated assets from OptimusMesh. Each GIF shows the explicit triangle mesh under rotation.</p>
-      <div class="sample-grid samples-ten">
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_b884ff155c4117a7508dd48e67ad44bc_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_b24092dde9ca927758aaf363794b1631_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_ba707bbbc56d1bc319620b61f6587b3e_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bac7bae00f0553bac88c75598a661012_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bc48080ee5498d721fca2012865943e2_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bd46cedafa0568b070d98a97e17b4da3_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bdc7c9339145602af51fa0238791f5dc_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_c0a143c5fd0048bbcd01aef15a146d7a_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_a5f28af83eb1dfbc3ffd072b23bde58_frames.gif"/>
-        <img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_c1b939cc403a0662664b3b9b23ddfcbc_frames.gif"/>
+      <p class="section-note">Rotating examples of generated meshes and compact reference meshes.</p>
+      <div class="sample-strip" aria-label="Generated OptimusMesh samples">
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_b884ff155c4117a7508dd48e67ad44bc_frames.gif" alt="Generated chair"/><figcaption>Chair</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_b24092dde9ca927758aaf363794b1631_frames.gif" alt="Generated table"/><figcaption>Table</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_ba707bbbc56d1bc319620b61f6587b3e_frames.gif" alt="Generated chair"/><figcaption>Chair</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bac7bae00f0553bac88c75598a661012_frames.gif" alt="Generated table"/><figcaption>Table</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bc48080ee5498d721fca2012865943e2_frames.gif" alt="Generated round table"/><figcaption>Round table</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_bdc7c9339145602af51fa0238791f5dc_frames.gif" alt="Generated table"/><figcaption>Table</figcaption></figure>
+        <figure><img src="assets/provided/predshapes_bundle_frames_gifs/predshapes_bundle/gif_frames_colored/pred_c0a143c5fd0048bbcd01aef15a146d7a_frames.gif" alt="Generated table"/><figcaption>Table</figcaption></figure>
+        <figure><img src="assets/generated_showcase_v2/hammer_compact.gif" alt="Compact hammer mesh"/><figcaption>Hammer</figcaption></figure>
+        <figure><img src="assets/generated_showcase_v2/mug_compact.gif" alt="Compact mug mesh"/><figcaption>Mug</figcaption></figure>
+        <figure><img src="assets/generated_showcase_v2/laptop_compact.gif" alt="Compact laptop mesh"/><figcaption>Laptop</figcaption></figure>
+      </div>
+      <div class="viewer-heading">
+        <span class="viewer-arrow" aria-hidden="true">&#8600;</span>
+        <div>
+          <h4>Interactive 3D Views</h4>
+          <p>Drag to rotate. Scroll to zoom.</p>
+        </div>
+      </div>
+      <div class="interactive-meshes">
+        <figure>
+          <canvas class="mesh-canvas" data-mesh="table" role="img" aria-label="Interactive compact table mesh; drag to rotate and scroll to zoom"></canvas>
+          <figcaption>Compact table</figcaption>
+        </figure>
+        <figure>
+          <canvas class="mesh-canvas" data-mesh="chair" role="img" aria-label="Interactive compact chair mesh; drag to rotate and scroll to zoom"></canvas>
+          <figcaption>Compact chair</figcaption>
+        </figure>
+        <figure>
+          <canvas class="mesh-canvas" data-mesh="laptop" role="img" aria-label="Interactive compact laptop mesh; drag to rotate and scroll to zoom"></canvas>
+          <figcaption>Compact laptop</figcaption>
+        </figure>
       </div>
     </section>
 
     <section class="section method-overview" id="method">
+      <p class="section-kicker">Approach</p>
       <h3>Method Overview</h3>
-      <p class="section-note">OptimusMesh first extracts sparse latent pivots from the input point cloud, then uses the same conditioning to generate vertices and triangle faces autoregressively.</p>
-      <div class="method-grid">
-        <div class="method-card"><span>1</span><h4>Point-cloud input</h4><p>2048 point-normal samples provide the observed geometry.</p></div>
-        <div class="method-card"><span>2</span><h4>Sparse latent pivots</h4><p>The encoder compresses dense observations into 16 learned 48-D pivots.</p></div>
-        <div class="method-card"><span>3</span><h4>Vertex model</h4><p>An autoregressive Transformer generates mesh vertices under pivot conditioning.</p></div>
-        <div class="method-card"><span>4</span><h4>Face model</h4><p>A second autoregressive Transformer predicts triangle connectivity with a compact face budget.</p></div>
-      </div>
-      <figure class="method-figure large">
-        <img src="assets/figures/teaser.png" alt="OptimusMesh teaser overview" />
-        <figcaption>Point cloud to sparse latent pivots to compact generated meshes.</figcaption>
+      <p class="method-lead">OptimusMesh compresses an oriented point cloud into 16 sparse latent pivots and uses them to directly generate a compact triangle mesh.</p>
+      <figure class="method-figure method-hero">
+        <img src="assets/figures/teaser_final.png" alt="OptimusMesh converts point clouds into compact triangle meshes using sparse latent pivots" />
+        <figcaption>From point-cloud observation to a compact, render-ready triangle mesh.</figcaption>
       </figure>
-      <figure class="method-figure">
-        <img src="assets/figures/pipeline.png" alt="OptimusMesh pipeline" />
-        <figcaption>Two-stage autoregressive generation: vertex model followed by face model.</figcaption>
-      </figure>
-      <figure class="method-figure">
+      <figure class="method-figure encoder-figure">
         <img src="assets/figures/encoder.png" alt="Point-cloud encoder" />
-        <figcaption>Point-cloud encoder progressively downsamples 2048 points to 16 latent pivots.</figcaption>
+        <figcaption>The point-cloud encoder converts 2,048 oriented points into 16 learned 48-D latent pivots that summarize the object's global structure.</figcaption>
+      </figure>
+      <figure class="method-figure architecture-figure">
+        <img src="assets/figures/pipeline_final.png" alt="Complete OptimusMesh sparse-pivot-conditioned autoregressive architecture" />
+        <figcaption>The sparse pivots condition a vertex Transformer followed by a face Transformer, producing vertices first and triangular connectivity second.</figcaption>
       </figure>
     </section>
 
@@ -134,7 +162,7 @@
       <h3>BibTeX</h3>
       <pre>@inproceedings{optimusmesh2026,
   title     = {OptimusMesh: Compact Autoregressive Mesh Generation from Point Clouds},
-  author    = {Iqbal, Mazhar and Chiba, Naoya and Sha, Xuanmeng and Mashita, Tomohiro and Uranishi, Yuki},
+  author    = {Iqbal, Mazhar and Sha, Xuanmeng and Chiba, Naoya and Uranishi, Yuki and Mashita, Tomohiro},
   booktitle = {Conference},
   year      = {2026}
 }</pre>

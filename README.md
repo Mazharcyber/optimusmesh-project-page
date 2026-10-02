@@ -4,10 +4,10 @@ A static research page for **OptimusMesh: Compact Autoregressive Mesh Generation
 
 ## What the page states (verified in `index.html`)
 
-- Input: 2,048 point-normal samples. A pretrained point-cloud encoder reduces them to **16 learned 48-D latent pivots**.
+- Input: 2,048 point-normal samples. A point-cloud encoder reduces them to **16 learned 48-D latent pivots**.
 - Two pivot-conditioned autoregressive Transformer stages generate vertices and then triangular faces. The page describes direct, compact, render-ready meshes without Marching Cubes or simplification.
-- The abstract reports, on a subset of ShapeNet samples, **55.3% lower CD-L1 than PSR** and **58.5% lower than SAP**, with **97.7% and 99.2% fewer faces**, respectively. It also claims **35.7%–55.4% lower CD-L1** than recent autoregressive mesh methods. These are claims displayed by the page; the repository does not include evaluation scripts, tables, or underlying measurements.
-- Qualitative rows for chair, table, and display compare input point clouds, ground truth, OptimusMesh, PSR, SAP, MeshAnything, MeshAnythingV2, FastMesh, NKSR, and MeshRipple. Ten more generated mesh GIFs and a scene video are embedded.
+- The abstract describes a 128-fold reduction from input points to pivots and a 16.1-fold shorter decoder conditioning sequence than the compared methods. The repository does not include the evaluation scripts or underlying measurements.
+- Four qualitative rows compare input point clouds with OptimusMesh, FastMesh, MeshAnything, MeshAnythingV2, MeshRipple, NKSR, PSR, and SAP. Rotating samples, three interactive meshes, and an application video are also embedded.
 
 ## Files and assets
 
@@ -15,8 +15,9 @@ A static research page for **OptimusMesh: Compact Autoregressive Mesh Generation
 | --- | --- |
 | `index.html` | Page copy, sections, relative media references, and BibTeX snippet |
 | `styles.css` | Layout, typography, comparison table, and narrow-screen styling |
-| `assets/figures/` | Referenced teaser, pipeline, and encoder PNGs |
-| `assets/provided/` | Referenced teaser/scene MP4s, point-cloud GIFs, per-method GIFs, and generated-sample GIFs |
+| `assets/figures/` | Teaser, pipeline, and encoder PNGs |
+| `assets/provided/`, `assets/generated_showcase_v2/`, `finalfigures/` | Videos and rotating mesh GIFs |
+| `assets/models/meshes.js`, `mesh-viewer.js` | Local interactive mesh viewer and geometry |
 
 The media paths above are taken from HTML references. Confirm every referenced file exists and plays after checkout; the HTML alone does not prove the asset inventory or media integrity.
 
@@ -30,7 +31,7 @@ From the repository root, run `python3 -m http.server 8000` and open `http://loc
 - [ ] Reconcile title, abstract, method diagram, and **autoregressive vertex-stage description** with the actual public manuscript. Confirm 2,048 inputs, 16 × 48-D pivots, and the claimed evaluation subset and percentages from final results.
 - [ ] Replace `href="#"` for Paper, Code, Video, and Data with working URLs, or hide unavailable buttons. Upload and link the agreed preprint before using the project page publicly.
 - [ ] Replace the placeholder BibTeX `booktitle = {Conference}` and confirm the appropriate entry type/year. Avoid implying acceptance while the manuscript is under review.
-- [ ] Verify all referenced images and videos exist, load on GitHub Pages with correct capitalization, and have permission for public distribution; check the three comparison rows and ten samples.
+- [ ] Verify all referenced images and videos load on GitHub Pages with correct capitalization and have permission for public distribution; check the four comparison rows and ten samples.
 - [ ] Test desktop and phone widths, horizontal comparison scrolling, video controls, accessibility text/captions, and the final public URL from a logged-out browser.
 - [ ] Before putting the URL in PhD applications, ensure the page identifies the work as **under review/preprint** as applicable, cites a stable manuscript URL, and accurately states your authorship and contribution.
 
